@@ -1,0 +1,8 @@
+<odoo>
+    <data>
+        <!-- Action Window -->
+        <record id="mrp.product_template_action" model="ir.actions.act_window">
+            <field name="domain">[('manufacture_ok', '=', True)]</field>
+        </record>
+    </data>
+</odoo>
