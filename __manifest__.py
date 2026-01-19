@@ -18,6 +18,11 @@ Long description of module's purpose
         "views/product_template_views.xml",
         "views/mrp_product_views.xml",
     ],
+    "assets": {
+        "point_of_sale._assets_pos": [
+            "pos_mrp_integration/static/src/js/pos_validate.js",
+        ]
+    },
     # only loaded in demonstration mode
     "demo": [],
     "auto_install": True,
