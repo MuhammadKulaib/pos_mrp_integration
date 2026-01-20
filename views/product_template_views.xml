@@ -7,9 +7,9 @@
       <field name="inherit_id" ref="product.product_template_form_view" />
       <field name="arch" type="xml">
         <xpath expr="//div[@name='options']" position="inside">
-          <span name="manufacture_option" class="d-inline-flex">
-            <field name="manufacture_ok" />
-            <label for="manufacture_ok" />
+          <span name="manufacture_from_pos_option" class="d-inline-flex">
+            <field name="manufacture_from_pos" />
+            <label for="manufacture_from_pos" />
           </span>
         </xpath>
       </field>
@@ -21,7 +21,7 @@
       <field name="inherit_id" ref="product.product_template_tree_view" />
       <field name="arch" type="xml">
         <xpath expr="//field[@name='sale_ok']" position="after">
-          <field name="manufacture_ok" column_invisible="1" />
+          <field name="manufacture_from_pos" optional="hide" />
         </xpath>
       </field>
     </record>

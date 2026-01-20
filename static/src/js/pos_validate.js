@@ -10,7 +10,7 @@ patch(PosStore.prototype, {
 
         if (line) {
             const product = line.product_id;
-            if (product.manufacture_ok && !product.bom_count) {
+            if (product.manufacture_from_pos && !product.bom_count) {
                 this.dialog.add(AlertDialog, {
                     title: 'Missing BoM',
                     body: `Product ${product.display_name} has no Bill of Materials`

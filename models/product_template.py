@@ -5,43 +5,47 @@ from odoo.exceptions import UserError
 class ProductTemplate(models.Model):
     _inherit = "product.template"
 
-    manufacture_ok = fields.Boolean(_("Manufacture"))
+    manufacture_from_pos = fields.Boolean(
+        string="Manufacture from POS",
+        help="If enabled, a Manufacturing Order is automatically created when sold via POS.",
+    )
 
-    @api.constrains("manufacture_ok", "available_in_pos", "is_kits", "bom_ids")
+    @api.constrains("manufacture_from_pos", "is_kits", "bom_ids")
     def _check_valid_bom(self):
         """
-        POS sale is blocked if no BoM exists
+        Product Must Have a valid Bill of Materials (BoM)
         """
-        todo = self.filtered(lambda i: i.manufacture_ok and i.available_in_pos)
-        for rec in todo:
-            # check if product is kit
-            if rec.is_kits:
+        for tmpl in self.filtered("manufacture_from_pos"):
+            # Use _bom_find to correctly handle company and variant fallback logic
+            boms = (
+                self.env["mrp.bom"]
+                ._bom_find(
+                    tmpl.product_variant_ids,
+                    company_id=tmpl.company_id.id,
+                    bom_type="normal",
+                )
+                .values()
+            )
+
+            # Ensure at least one valid BoM exists
+            if not boms:
                 raise UserError(
                     _(
-                        "This product is identified as a Kit. Please disable 'Manufacture' or change the Bill of Materials type to 'Manufacture this product'."
+                        "Product '%(name)s' must have a valid 'Manufacture this product' BoM (Company: %(company)s).",
+                        name=tmpl.display_name,
+                        company=tmpl.company_id.name or "All",
                     )
                 )
 
-            # check if product has valid bom
-            if not (
-                rec.bom_ids.mapped("bom_line_ids").filtered(
-                    lambda i: i.product_id.type == "consu"
-                )
-                or rec.bom_ids.mapped("byproduct_ids").filtered(
-                    lambda i: i.product_id.type == "consu"
-                )
-            ):
-                raise UserError(
-                    _(
-                        "No valid Bill of Materials found. The product must containing at least one storable or consumable component or by-product."
-                    )
-                )
-
-    @api.constrains("manufacture_ok", "type")
-    def _check_valid_manufacture_type(self):
+    @api.constrains("manufacture_from_pos", "type")
+    def _check_manufacture_product_type(self):
         """
-        Check if the product type is valid for manufacture
-        That Must equal consu
+        Validate that the product type allows 'Manufacture from POS'.
+        Currently restricted to consumable products.
         """
-        if self.filtered(lambda i: i.manufacture_ok and i.type != "consu"):
-            raise UserError(_("The product type must be consumable for manufacture."))
+        if self.filtered(lambda i: i.manufacture_from_pos and i.type != "consu"):
+            raise UserError(
+                _(
+                    "Manufacturing from POS is currently only supported for Consumable products.",
+                ),
+            )

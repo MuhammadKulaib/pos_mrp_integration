@@ -7,5 +7,5 @@ class ProductProduct(models.Model):
     @api.model
     def _load_pos_data_fields(self, config):
         params = super()._load_pos_data_fields(config)
-        params += ["manufacture_ok", "bom_count"]
+        params += ["manufacture_from_pos", "bom_count"]
         return params

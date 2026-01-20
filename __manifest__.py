@@ -16,7 +16,6 @@ Long description of module's purpose
     # always loaded
     "data": [
         "views/product_template_views.xml",
-        "views/mrp_product_views.xml",
         "views/mrp_production_views.xml",
         "views/pos_order_views.xml",
     ],
