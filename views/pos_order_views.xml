@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_pos_pos_form" model="ir.ui.view">
+        <field name="name">pos.order.mrp.form</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_pos_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button class="oe_stat_button" name="action_open_mrp_production" type="object"
+                    icon="fa-wrench"
+                    invisible="not mrp_production_count">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="mrp_production_count" />
+                        </span>
+                        <span class="o_stat_text">MRP Productions</span>
+
+                    </div>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>
