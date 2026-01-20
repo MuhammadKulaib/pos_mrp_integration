@@ -23,15 +23,32 @@ class PosOrder(models.Model):
 
     @api.constrains("lines")
     def _check_valid_order_lines(self):
-        for rec in self:
-            products = rec.lines.mapped("product_id").filtered(
-                lambda p: p.manufacture_ok and not p.bom_count
+        for order in self:
+            # Filter products that require manufacturing
+            products = order.lines.mapped("product_id").filtered("manufacture_from_pos")
+            if not products:
+                continue
+
+            # Check if a valid BoM exists for these products and the order's company
+            # _bom_find returns a dict {product: bom}
+            boms_by_product = self.env["mrp.bom"]._bom_find(
+                products,
+                picking_type=order.picking_type_id,
+                company_id=order.company_id.id,
+                bom_type="normal",
             )
-            if products:
+
+            # Identify products for which no BoM was found
+            products_missing_bom = products.filtered(
+                lambda p: not boms_by_product.get(p)
+            )
+
+            if products_missing_bom:
                 raise ValidationError(
                     _(
-                        "Product %s has no Bill of Materials"
-                        % str(", ".join(products.mapped("display_name")))
+                        "The following products are marked for 'Manufacture from POS' but have no valid Bill of Materials available for company %(company)s:\n%(products)s",
+                        company=order.company_id.name,
+                        products=", ".join(products_missing_bom.mapped("display_name")),
                     )
                 )
 
@@ -55,7 +72,9 @@ class PosOrder(models.Model):
                     "company_id": company.id,
                     "picking_type_id": picking_type_id,
                 }
-                for line in order.lines.filtered(lambda i: i.product_id.manufacture_ok)
+                for line in order.lines.filtered(
+                    lambda i: i.product_id.manufacture_from_pos
+                )
             ]
             production_orders = (
                 self.env["mrp.production"]
