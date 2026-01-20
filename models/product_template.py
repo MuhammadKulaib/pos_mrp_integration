@@ -49,3 +49,15 @@ class ProductTemplate(models.Model):
                     "Manufacturing from POS is currently only supported for Consumable products.",
                 ),
             )
+
+    @api.constrains("manufacture_from_pos", "is_storable")
+    def _check_manufacture_from_pos_is_storable(self):
+        """
+        Validate that the manufacture from pos product is storable.
+        """
+        if self.filtered(lambda i: i.manufacture_from_pos and not i.is_storable):
+            raise UserError(
+                _(
+                    "Manufacturing from POS is currently only supported for Storable products.",
+                ),
+            )

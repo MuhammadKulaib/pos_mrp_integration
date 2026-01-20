@@ -82,8 +82,17 @@ class PosOrder(models.Model):
                 .sudo()
                 .create(mrp_orders_to_create)
             )
+            # Manufacturing cost must be reflected in Product cost (Default Value That Change when Produce All in production order based on category cost method)
+            order.lines.mapped("product_id").action_bom_cost()
+
+            # confirm production orders to start production and check availability
             production_orders.action_confirm()
-            production_orders.button_mark_done()
+
+            # mark as done if all components are available
+            # For No negative stock issues should occur
+            production_orders.filtered(
+                lambda p: p.components_availability_state != "unavailable"
+            ).button_mark_done()
 
     def action_open_mrp_production(self):
         self.ensure_one()
